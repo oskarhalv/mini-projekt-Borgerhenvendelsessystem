@@ -1,1 +1,1 @@
-111
+print("Solid Snake from the hit game Metal Gear Solid")
