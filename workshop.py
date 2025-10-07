@@ -35,6 +35,67 @@ class Elev(Person):
         return f"{super().__str__()}, Region: {self.Region}, Kommune: {self.Kommune}"
 
 
+class Lærer(Person):
+    """
+    Lærer-klasse der udvider Person med email, telefon og fag.
+    Demonstrerer properties med validering for at beskytte data-integritet.
+    """
+    def __init__(self, navn, alder, køn, email, telefon, fag=None):
+        super().__init__(navn, alder, køn)
+        # Brug properties - dette kalder automatisk setters med validering
+        self.email = email
+        self.telefon = telefon
+        self._fag = fag if fag else []
+    
+    @property
+    def email(self):
+        """
+        Getter for email - returnerer den interne værdi.
+        """
+        return self._email
+    
+    @email.setter
+    def email(self, value):
+        """
+        Setter for email med validering.
+        Sikrer at emailen har et gyldigt format (noget@noget.noget).
+        """
+        if not isinstance(value, str):
+            raise TypeError("Email skal være tekst")
+        
+        # Regex mønster for email-validering
+        email_mønster = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_mønster, value):
+            raise ValueError("Email skal have formatet: navn@domæne.dk")
+        
+        self._email = value
+    
+    @property
+    def telefon(self):
+        """Getter for telefon - returnerer formateret telefonnummer."""
+        return self._telefon
+    
+    @telefon.setter
+    def telefon(self, value):
+        """
+        Setter for telefon med validering og formatering.
+        Accepterer forskellige input-formater men standardiserer til ét format.
+        """
+        # Fjern mellemrum og bindestreger for at standardisere
+        renset = value.replace(" ", "").replace("-", "")
+        
+        # Validér at det kun er tal
+        if not renset.isdigit():
+            raise ValueError("Telefonnummer må kun indeholde tal")
+        
+        # Validér længde (dansk telefonnummer = 8 cifre)
+        if len(renset) != 8:
+            raise ValueError("Dansk telefonnummer skal være 8 cifre")
+        
+        # Gem i standardformat for læsbarhed: XX XX XX XX
+        self._telefon = f"{renset[:2]} {renset[2:4]} {renset[4:6]} {renset[6:]}"
+    
+
 # --- Filnavn ---
 FILENAME = "personliste.csv"
 
