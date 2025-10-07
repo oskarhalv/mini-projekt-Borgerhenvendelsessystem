@@ -3,31 +3,31 @@ import os
 
 # --- Klasser ---
 class Person:
-    def __init__(self, navn, alder, køn):
+    def __init__(self, navn, CPR, køn):
         self.navn = navn
-        self.alder = alder
+        self.CPR = CPR
         self.køn = køn
 
     def __str__(self):
-        return f"Navn: {self.navn}, Alder: {self.alder}, Køn: {self.køn}"
+        return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}"
 
     @property
-    def alder(self) -> int:
-        return self._alder
+    def CPR(self) -> int:
+        return self._CPR
 
-    @alder.setter
-    def alder(self, value):
+    @CPR.setter
+    def CPR(self, value):
         try:
             value = int(value)
         except (TypeError, ValueError):
-            raise TypeError("Alder skal være et heltal; decimaltal afrundes") from None
+            raise TypeError("CPR skal være et heltal; decimaltal afrundes") from None
         if value < 0:
-            raise ValueError("Alder kan ikke være negativ")
-        self._alder = value
+            raise ValueError("CPR kan ikke være negativ")
+        self._CPR = value
         
 class Elev(Person):
-    def __init__(self, navn, alder, køn, skole, klassetrin):
-        super().__init__(navn, alder, køn)
+    def __init__(self, navn, CPR, køn, skole, klassetrin):
+        super().__init__(navn, CPR, køn)
         self.skole = skole
         self.klassetrin = klassetrin
 
@@ -46,14 +46,14 @@ def gem_personer_csv(personer):
     # Kombiner med filnavnet
     filepath = os.path.join(script_dir, FILENAME)
     
-    felt_navn = ["navn", "alder", "køn", "skole", "klassetrin"]
+    felt_navn = ["navn", "CPR", "køn", "skole", "klassetrin"]
     with open(filepath, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=felt_navn)
         writer.writeheader()
         for p in personer:
             row = {
                 "navn": p.navn,
-                "alder": p.alder,
+                "CPR": p.CPR,
                 "køn": p.køn,
                 "skole": getattr(p, "skole", ""),
                 "klassetrin": getattr(p, "klassetrin", "")
@@ -75,14 +75,14 @@ def indlaes_personer_csv():
             reader = csv.DictReader(f)
             for row in reader:
                 navn = row["navn"]
-                alder = int(row["alder"])
+                CPR = int(row["CPR"])
                 køn = row["køn"]
                 skole = row.get("skole", "")
                 klassetrin = row.get("klassetrin", "")
                 if skole or klassetrin:
-                    personer.append(Elev(navn, alder, køn, skole, klassetrin))
+                    personer.append(Elev(navn, CPR, køn, skole, klassetrin))
                 else:
-                    personer.append(Person(navn, alder, køn))
+                    personer.append(Person(navn, CPR, køn))
         print(f"{len(personer)} personer/elev indlæst fra '{filepath}'")
     else:
         print("Ingen tidligere fil fundet, starter med tom liste.")
@@ -104,15 +104,15 @@ def main():
 
         if valg == "1":
             navn = input("Indtast navn: ")
-            alder = input("Indtast alder: ")
+            CPR = input("Indtast CPR: ")
             køn = input("Indtast køn: ")
             try:
-                alder = int(alder)
-                p = Person(navn, alder, køn)
+                CPR = int(CPR)
+                p = Person(navn, CPR, køn)
                 personer.append(p)
                 print("Person tilføjet!")
             except ValueError:
-                print("⚠ Alder skal være et heltal.")
+                print("⚠ CPR skal være et heltal.")
 
         elif valg == "2":
             if not personer:
@@ -141,7 +141,7 @@ def main():
 
             skole = input("Indtast skole: ")
             klassetrin = input("Indtast klassetrin: ")
-            elev = Elev(person_valgt.navn, person_valgt.alder, person_valgt.køn, skole, klassetrin)
+            elev = Elev(person_valgt.navn, person_valgt.CPR, person_valgt.køn, skole, klassetrin)
             personer[personer.index(person_valgt)] = elev
             print(f"{elev.navn} er nu elev på {skole}, klassetrin {klassetrin}!")
 
