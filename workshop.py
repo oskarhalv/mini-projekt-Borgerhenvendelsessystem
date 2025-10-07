@@ -26,13 +26,13 @@ class Person:
         self._CPR = value
         
 class Elev(Person):
-    def __init__(self, navn, CPR, køn, skole, klassetrin):
+    def __init__(self, navn, CPR, køn, Region, Kommune):
         super().__init__(navn, CPR, køn)
-        self.skole = skole
-        self.klassetrin = klassetrin
+        self.Region = Region
+        self.Kommune = Kommune
 
     def __str__(self):
-        return f"{super().__str__()}, Skole: {self.skole}, Klassetrin: {self.klassetrin}"
+        return f"{super().__str__()}, Region: {self.Region}, Kommune: {self.Kommune}"
 
 
 # --- Filnavn ---
@@ -46,7 +46,7 @@ def gem_personer_csv(personer):
     # Kombiner med filnavnet
     filepath = os.path.join(script_dir, FILENAME)
     
-    felt_navn = ["navn", "CPR", "køn", "skole", "klassetrin"]
+    felt_navn = ["navn", "CPR", "køn", "Region", "Kommune"]
     with open(filepath, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=felt_navn)
         writer.writeheader()
@@ -55,8 +55,8 @@ def gem_personer_csv(personer):
                 "navn": p.navn,
                 "CPR": p.CPR,
                 "køn": p.køn,
-                "skole": getattr(p, "skole", ""),
-                "klassetrin": getattr(p, "klassetrin", "")
+                "Region": getattr(p, "Region", ""),
+                "Kommune": getattr(p, "Kommune", "")
             }
             writer.writerow(row)
     print(f"Listen er gemt i '{filepath}' (CSV-fil).")
@@ -77,10 +77,10 @@ def indlaes_personer_csv():
                 navn = row["navn"]
                 CPR = int(row["CPR"])
                 køn = row["køn"]
-                skole = row.get("skole", "")
-                klassetrin = row.get("klassetrin", "")
-                if skole or klassetrin:
-                    personer.append(Elev(navn, CPR, køn, skole, klassetrin))
+                Region = row.get("Region", "")
+                Kommune = row.get("Kommune", "")
+                if Region or Kommune:
+                    personer.append(Elev(navn, CPR, køn, Region, Kommune))
                 else:
                     personer.append(Person(navn, CPR, køn))
         print(f"{len(personer)} personer/elev indlæst fra '{filepath}'")
@@ -97,7 +97,7 @@ def main():
         print("\n--- Person/Elev Registrering ---")
         print("1. Tilføj person")
         print("2. Vis alle personer")
-        print("3. Tilføj person til skole")
+        print("3. Tilføj person til Region")
         print("4. Gem liste som CSV")
         print("5. Afslut")
         valg = input("Vælg en mulighed: ")
@@ -139,11 +139,11 @@ def main():
                 print("Ugyldigt valg.")
                 continue
 
-            skole = input("Indtast skole: ")
-            klassetrin = input("Indtast klassetrin: ")
-            elev = Elev(person_valgt.navn, person_valgt.CPR, person_valgt.køn, skole, klassetrin)
+            Region = input("Indtast Region: ")
+            Kommune = input("Indtast Kommune: ")
+            elev = Elev(person_valgt.navn, person_valgt.CPR, person_valgt.køn, Region, Kommune)
             personer[personer.index(person_valgt)] = elev
-            print(f"{elev.navn} er nu elev på {skole}, klassetrin {klassetrin}!")
+            print(f"{elev.navn} er nu elev på {Region}, Kommune {Kommune}!")
 
         elif valg == "4":
             gem_personer_csv(personer)
