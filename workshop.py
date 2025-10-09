@@ -164,7 +164,7 @@ def main():
             Kommune = input("Indtast Kommune: ")
             try:
                 CPR = int(CPR)
-                p = Person(navn, CPR, køn)
+                p = Person(navn, CPR, køn, Region, Kommune)
                 personer.append(p)
                 print("Person tilføjet!")
             except ValueError:
