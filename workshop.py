@@ -4,7 +4,7 @@ import re
 
 # --- Klasser ---
 class Person:
-    def __init__(self, navn, CPR, køn, Region="", Kommune=""):
+    def __init__(self, navn, CPR, køn, Region, Kommune):
         self.navn = navn
         self.CPR = CPR
         self.køn = køn
@@ -14,7 +14,8 @@ class Person:
     def __str__(self):
         if self.Region or self.Kommune:
             return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}, Region: {self.Region}, Kommune: {self.Kommune}"
-        return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}"
+        return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}, {self.Region}, {self.Kommune}"
+
 
     @property
     def CPR(self) -> int:
@@ -36,12 +37,11 @@ class Lærer(Person):
     Lærer-klasse der udvider Person med email, telefon og fag.
     Demonstrerer properties med validering for at beskytte data-integritet.
     """
-    def __init__(self, navn, CPR, køn, email, telefon, Region="", Kommune="", fag=None):
+    def __init__(self, navn, CPR, køn, email, telefon, Region, Kommune):
         super().__init__(navn, CPR, køn, Region, Kommune)
         # Brug properties - dette kalder automatisk setters med validering
         self.email = email
         self.telefon = telefon
-        self._fag = fag if fag else []
     
     @property
     def email(self):
@@ -160,6 +160,8 @@ def main():
             navn = input("Indtast navn: ")
             CPR = input("Indtast CPR: ")
             køn = input("Indtast køn: ")
+            Region = input("indtast Region: ")
+            Kommune = input("Indtast Kommune: ")
             try:
                 CPR = int(CPR)
                 p = Person(navn, CPR, køn)
