@@ -6,7 +6,7 @@ import re
 class Person:
     def __init__(self, navn, CPR, køn, Region, Kommune):
         self.navn = navn
-        self.CPR = CPR
+        self.CPR = CPR  # kalder property
         self.køn = køn
         self.Region = Region
         self.Kommune = Kommune
@@ -14,21 +14,26 @@ class Person:
     def __str__(self):
         if self.Region or self.Kommune:
             return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}, Region: {self.Region}, Kommune: {self.Kommune}"
-        return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}, {self.Region}, {self.Kommune}"
-
+        return f"Navn: {self.navn}, CPR: {self.CPR}, Køn: {self.køn}"
 
     @property
-    def CPR(self) -> int:
+    def CPR(self) -> str:
         return self._CPR
 
     @CPR.setter
     def CPR(self, value):
-        try:
-            value = int(value)
-        except (TypeError, ValueError):
-            raise TypeError("CPR skal være et heltal; decimaltal afrundes") from None
-        if value < 0:
-            raise ValueError("CPR kan ikke være negativ")
+        # Sørg for at CPR er en streng
+        value = str(value).strip()
+        clean_value = value.replace("-", "").replace(" ", "")
+
+        # Tjek at CPR kun består af tal
+        if not clean_value.isdigit():
+            raise ValueError(f"CPR må kun indeholde tal og evt. en bindestreg (fik: {value})")
+
+        # Tjek længden
+        if len(clean_value) != 10:
+            raise ValueError(f"CPR skal være præcis 10 cifre — du indtastede {len(clean_value)} ({value})")
+
         self._CPR = value
 
 
@@ -39,58 +44,35 @@ class Lærer(Person):
     """
     def __init__(self, navn, CPR, køn, email, telefon, Region, Kommune):
         super().__init__(navn, CPR, køn, Region, Kommune)
-        # Brug properties - dette kalder automatisk setters med validering
         self.email = email
         self.telefon = telefon
-    
+
     @property
     def email(self):
-        """
-        Getter for email - returnerer den interne værdi.
-        """
         return self._email
-    
+
     @email.setter
     def email(self, value):
-        """
-        Setter for email med validering.
-        Sikrer at emailen har et gyldigt format (noget@noget.noget).
-        """
         if not isinstance(value, str):
             raise TypeError("Email skal være tekst")
-        
-        # Regex mønster for email-validering
         email_mønster = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_mønster, value):
             raise ValueError("Email skal have formatet: navn@domæne.dk")
-        
         self._email = value
-    
+
     @property
     def telefon(self):
-        """Getter for telefon - returnerer formateret telefonnummer."""
         return self._telefon
-    
+
     @telefon.setter
     def telefon(self, value):
-        """
-        Setter for telefon med validering og formatering.
-        Accepterer forskellige input-formater men standardiserer til ét format.
-        """
-        # Fjern mellemrum og bindestreger for at standardisere
         renset = value.replace(" ", "").replace("-", "")
-        
-        # Validér at det kun er tal
         if not renset.isdigit():
             raise ValueError("Telefonnummer må kun indeholde tal")
-        
-        # Validér længde (dansk telefonnummer = 8 cifre)
         if len(renset) != 8:
             raise ValueError("Dansk telefonnummer skal være 8 cifre")
-        
-        # Gem i standardformat for læsbarhed: XX XX XX XX
         self._telefon = f"{renset[:2]} {renset[2:4]} {renset[4:6]} {renset[6:]}"
-    
+
 
 # --- Filnavn ---
 FILENAME = "personliste.csv"
@@ -98,54 +80,52 @@ FILENAME = "personliste.csv"
 
 # --- Gem listen til CSV ---
 def gem_personer_csv(personer):
-    # Find mappen hvor .py filen ligger
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Kombiner med filnavnet
     filepath = os.path.join(script_dir, FILENAME)
-    
+
     felt_navn = ["navn", "CPR", "køn", "Region", "Kommune"]
     with open(filepath, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=felt_navn)
         writer.writeheader()
         for p in personer:
-            row = {
+            writer.writerow({
                 "navn": p.navn,
                 "CPR": p.CPR,
                 "køn": p.køn,
                 "Region": getattr(p, "Region", ""),
                 "Kommune": getattr(p, "Kommune", "")
-            }
-            writer.writerow(row)
-    print(f"Listen er gemt i '{filepath}' (CSV-fil).")
+            })
+    print(f"✅ Listen er gemt i '{filepath}'.")
 
 
 # --- Indlæs liste fra CSV ---
 def indlaes_personer_csv():
-    # Find mappen hvor .py filen ligger
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Kombiner med filnavnet
     filepath = os.path.join(script_dir, FILENAME)
-    
+
     personer = []
     if os.path.exists(filepath):
         with open(filepath, "r", newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                navn = row["navn"]
-                CPR = int(row["CPR"])
-                køn = row["køn"]
-                Region = row.get("Region", "")
-                Kommune = row.get("Kommune", "")
-                personer.append(Person(navn, CPR, køn, Region, Kommune))
-        print(f"{len(personer)} personer indlæst fra '{filepath}'")
+                navn = row["navn"].strip()
+                CPR = row["CPR"].strip()
+                køn = row["køn"].strip()
+                Region = row.get("Region", "").strip()
+                Kommune = row.get("Kommune", "").strip()
+                try:
+                    personer.append(Person(navn, CPR, køn, Region, Kommune))
+                except ValueError as e:
+                    print(f"⚠ Fejl i indlæsning af '{navn}': {e}")
+        print(f"📥 {len(personer)} personer indlæst fra '{filepath}'")
     else:
-        print("Ingen tidligere fil fundet, starter med tom liste.")
+        print("Ingen tidligere fil fundet. Starter med tom liste.")
     return personer
 
 
 # --- Terminalprogram ---
 def main():
-    personer = indlaes_personer_csv()  # indlæs eksisterende CSV
+    personer = indlaes_personer_csv()
 
     while True:
         print("\n--- Person Registrering ---")
@@ -154,21 +134,21 @@ def main():
         print("3. Tilføj Region/Kommune til person")
         print("4. Gem liste som CSV")
         print("5. Afslut")
-        valg = input("Vælg en mulighed: ")
+        valg = input("Vælg en mulighed: ").strip()
 
         if valg == "1":
-            navn = input("Indtast navn: ")
-            CPR = input("Indtast CPR: ")
-            køn = input("Indtast køn: ")
-            Region = input("indtast Region: ")
-            Kommune = input("Indtast Kommune: ")
+            navn = input("Indtast navn: ").strip()
+            CPR = input("Indtast CPR (fx 010203-1234): ").strip()
+            køn = input("Indtast køn: ").strip()
+            Region = input("Indtast Region: ").strip()
+            Kommune = input("Indtast Kommune: ").strip()
+
             try:
-                CPR = int(CPR)
                 p = Person(navn, CPR, køn, Region, Kommune)
                 personer.append(p)
-                print("Person tilføjet!")
-            except ValueError:
-                print("⚠ CPR skal være et heltal.")
+                print(f"✅ Person '{navn}' tilføjet!")
+            except ValueError as e:
+                print(f"⚠ Fejl: {e}")
 
         elif valg == "2":
             if not personer:
@@ -179,7 +159,7 @@ def main():
                     print(f"{i}. {person}")
 
         elif valg == "3":
-            personer_uden_region = [p for p in personer if not p.Region and not p.Kommune]
+            personer_uden_region = [p for p in personer if not p.Region or not p.Kommune]
             if not personer_uden_region:
                 print("Ingen personer uden Region/Kommune.")
                 continue
@@ -195,22 +175,22 @@ def main():
                 print("Ugyldigt valg.")
                 continue
 
-            Region = input("Indtast Region: ")
-            Kommune = input("Indtast Kommune: ")
+            Region = input("Indtast Region: ").strip()
+            Kommune = input("Indtast Kommune: ").strip()
             person_valgt.Region = Region
             person_valgt.Kommune = Kommune
-            print(f"{person_valgt.navn} har nu Region: {Region}, Kommune: {Kommune}!")
+            print(f"✅ {person_valgt.navn} har nu Region: {Region}, Kommune: {Kommune}!")
 
         elif valg == "4":
             gem_personer_csv(personer)
 
         elif valg == "5":
-            print("Program afsluttes.")
+            print("💾 Program afsluttes. Gemmer data...")
             gem_personer_csv(personer)
             break
 
         else:
-            print("Ugyldigt valg, prøv igen.")
+            print("⚠ Ugyldigt valg, prøv igen.")
 
 
 if __name__ == "__main__":
