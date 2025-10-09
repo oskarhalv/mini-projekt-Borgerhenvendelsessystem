@@ -37,10 +37,9 @@ class Person:
         self._CPR = value
 
 
-class Lærer(Person):
+class Medarbejder(Person):
     """
-    Lærer-klasse der udvider Person med email, telefon og fag.
-    Demonstrerer properties med validering for at beskytte data-integritet.
+    Medarbejder klassen skal bruges til at medarbejder kan se henvendelserne 
     """
     def __init__(self, navn, CPR, køn, email, telefon, Region, Kommune):
         super().__init__(navn, CPR, køn, Region, Kommune)
