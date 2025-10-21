@@ -39,12 +39,21 @@ class Person:
 
 class Medarbejder(Person):
     """
-    Medarbejder klassen skal bruges til at medarbejder kan se henvendelserne 
+    Medarbejder klassen skal bruges til at Medarbejder kan se henvendelserne 
     """
     def __init__(self, navn, CPR, køn, email, telefon, Region, Kommune):
         super().__init__(navn, CPR, køn, Region, Kommune)
+        self._email = None  # Initialize before setter
+        self._telefon = None  # Initialize before setter
         self.email = email
         self.telefon = telefon
+        self.afdelinger = []
+
+    def tilføj_afdeling(self, afdeling):
+        if afdeling not in self.afdelinger:
+            self.afdelinger.append(afdeling)
+            return True
+        return False
 
     @property
     def email(self):
@@ -130,9 +139,10 @@ def main():
         print("\n--- Person Registrering ---")
         print("1. Tilføj person")
         print("2. Vis alle personer")
-        print("3. Tilføj Region/Kommune til person")
-        print("4. Gem liste som CSV")
-        print("5. Afslut")
+        print("3. Tilføj Medarbejder")
+        print("4. Tilføj Region/Kommune til person")
+        print("5. Gem liste som CSV")
+        print("6. Afslut")
         valg = input("Vælg en mulighed: ").strip()
 
         if valg == "1":
@@ -148,7 +158,7 @@ def main():
                 print(f"✅ Person '{navn}' tilføjet!")
             except ValueError as e:
                 print(f"⚠ Fejl: {e}")
-
+    
         elif valg == "2":
             if not personer:
                 print("Ingen personer registreret endnu.")
@@ -158,6 +168,31 @@ def main():
                     print(f"{i}. {person}")
 
         elif valg == "3":
+            print("\n--- Tilføj ny Medarbejder ---")
+            navn = input("Indtast navn: ")
+            CPR = input("Indtast CPR: ")
+            køn = input("Indtast køn: ")
+            Region = input("Indtast Region: ")
+            Kommune = input("Indtast Kommune: ")
+            email = input("Indtast email: ")
+            telefon = input("Indtast telefon (8 cifre): ")
+            
+            try:
+                M = Medarbejder(navn, CPR, køn, email, telefon, Region, Kommune)
+                print("\nTilføj afdeling (tryk Enter uden at skrive noget for at afslutte)")
+                while True:
+                    afdeling = input("Afdeling: ").strip()
+                    if not afdeling:
+                        break
+                    if M.tilføj_afdeling(afdeling):
+                        print(f"  ✓ {afdeling} tilføjet")
+                
+                personer.append(M)
+                print(f"✓ Medarbejder {navn} tilføjet!")
+            except (ValueError, TypeError) as e:
+                print(f"⚠ Fejl: {e}")
+
+        elif valg == "4":
             personer_uden_region = [p for p in personer if not p.Region or not p.Kommune]
             if not personer_uden_region:
                 print("Ingen personer uden Region/Kommune.")
@@ -180,10 +215,10 @@ def main():
             person_valgt.Kommune = Kommune
             print(f"✅ {person_valgt.navn} har nu Region: {Region}, Kommune: {Kommune}!")
 
-        elif valg == "4":
+        elif valg == "5":
             gem_personer_csv(personer)
 
-        elif valg == "5":
+        elif valg == "6":
             print("💾 Program afsluttes. Gemmer data...")
             gem_personer_csv(personer)
             break
